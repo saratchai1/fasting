@@ -30,6 +30,13 @@ export type RecommendedHours = 0 | 12 | 14 | 16 | 18 | 20;
 
 export type SessionStatus = "running" | "paused" | "stopped" | "completed";
 
+export type TrackerDataSource =
+  | "manual"
+  | "apple_health"
+  | "huawei_health"
+  | "shortcut"
+  | "other";
+
 export type HealthWarnings = {
   pregnant: boolean;
   breastfeeding: boolean;
@@ -81,6 +88,12 @@ export type DailyCheckIn = {
   currentWaistCm: number;
   menstrualPhase: MenstrualPhase;
   symptoms: SymptomFlags;
+  trackerData?: {
+    source: TrackerDataSource;
+    importedAt: string;
+    importedFields: string[];
+    sleepScore?: number;
+  };
   createdAt: string;
 };
 

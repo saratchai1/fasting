@@ -2,10 +2,15 @@
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { ClipboardCheck, Moon, Save } from "lucide-react";
+import { ClipboardCheck, Cloud, Moon, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import {
+  getHealthSyncSourceLabel,
+  parseHealthSyncParams,
+  type HealthSyncImport,
+} from "@/lib/healthSync";
 import {
   getDailyCheckIns,
   getUserProfile,
@@ -110,43 +115,74 @@ export function CheckInForm() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [form, setForm] = useState<CheckInFormState>(defaultForm);
+  const [syncImport, setSyncImport] = useState<HealthSyncImport | null>(null);
 
   useEffect(() => {
     const storedProfile = getUserProfile();
     const dateISO = todayISO();
     const todayCheckIn = getDailyCheckIns().find((entry) => entry.dateISO === dateISO);
+    const imported = parseHealthSyncParams(
+      new URLSearchParams(window.location.search),
+    );
 
     setProfile(storedProfile);
     setLoaded(true);
 
+    const syncedValues = imported?.values ?? {};
+
     if (todayCheckIn) {
       setForm({
-        sleepHours: todayCheckIn.sleepHours,
+        sleepHours: syncedValues.sleepHours ?? todayCheckIn.sleepHours,
         sleepQuality: todayCheckIn.sleepQuality,
+        ...(syncedValues.sleepQuality
+          ? { sleepQuality: syncedValues.sleepQuality }
+          : {}),
         energy: todayCheckIn.energy,
         stress: todayCheckIn.stress,
         hunger: todayCheckIn.hunger,
         mood: todayCheckIn.mood,
-        lastMealTime: todayCheckIn.lastMealTime,
+        lastMealTime: syncedValues.lastMealTime ?? todayCheckIn.lastMealTime,
         coffeeCups: todayCheckIn.coffeeCups,
         coffeeWithSugarOrMilk: todayCheckIn.coffeeWithSugarOrMilk,
-        exerciseYesterday: todayCheckIn.exerciseYesterday,
-        currentWeightKg: todayCheckIn.currentWeightKg,
-        currentWaistCm: todayCheckIn.currentWaistCm,
+        exerciseYesterday:
+          syncedValues.exerciseYesterday ?? todayCheckIn.exerciseYesterday,
+        currentWeightKg:
+          syncedValues.currentWeightKg ?? todayCheckIn.currentWeightKg,
+        currentWaistCm: syncedValues.currentWaistCm ?? todayCheckIn.currentWaistCm,
         menstrualPhase: todayCheckIn.menstrualPhase,
         symptoms: todayCheckIn.symptoms,
+        trackerData: imported
+          ? {
+              source: imported.source,
+              importedAt: imported.importedAt,
+              importedFields: imported.importedFields,
+              sleepScore: imported.sleepScore,
+            }
+          : todayCheckIn.trackerData,
       });
+      setSyncImport(imported);
       return;
     }
 
     if (storedProfile) {
       setForm((current) => ({
         ...current,
-        currentWeightKg: storedProfile.weightKg,
-        currentWaistCm: storedProfile.waistCm,
+        ...syncedValues,
+        currentWeightKg: syncedValues.currentWeightKg ?? storedProfile.weightKg,
+        currentWaistCm: syncedValues.currentWaistCm ?? storedProfile.waistCm,
         menstrualPhase: storedProfile.menstrualCycleEnabled ? "follicular" : "none",
+        trackerData: imported
+          ? {
+              source: imported.source,
+              importedAt: imported.importedAt,
+              importedFields: imported.importedFields,
+              sleepScore: imported.sleepScore,
+            }
+          : undefined,
       }));
     }
+
+    setSyncImport(imported);
   }, []);
 
   function setField<K extends keyof CheckInFormState>(
@@ -180,6 +216,14 @@ export function CheckInForm() {
       id: makeId("checkin"),
       dateISO: todayISO(),
       menstrualPhase: profile.menstrualCycleEnabled ? form.menstrualPhase : "none",
+      trackerData: syncImport
+        ? {
+            source: syncImport.source,
+            importedAt: syncImport.importedAt,
+            importedFields: syncImport.importedFields,
+            sleepScore: syncImport.sleepScore,
+          }
+        : form.trackerData,
       createdAt: now,
     };
 
@@ -209,6 +253,41 @@ export function CheckInForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {syncImport ? (
+        <section className="rounded-[28px] border border-[#b8e4d9] bg-[#ecfbf6] p-5 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-[#2f6b54]">
+              <Cloud size={21} aria-hidden="true" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#2f6b54]">
+                นำเข้าข้อมูลจาก {getHealthSyncSourceLabel(syncImport.source)} แล้ว
+              </p>
+              <p className="mt-1 text-sm leading-6 text-[#526258]">
+                ตรวจทานค่าที่เติมให้อัตโนมัติ แล้วแก้ได้ก่อนกดบันทึก
+              </p>
+              {syncImport.importedFields.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {syncImport.importedFields.map((field) => (
+                    <span
+                      key={field}
+                      className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#2f6b54]"
+                    >
+                      {field}
+                    </span>
+                  ))}
+                  {syncImport.sleepScore !== undefined ? (
+                    <span className="rounded-full bg-[#d9f99d] px-3 py-1 text-xs font-semibold text-[#17352f]">
+                      Sleep score {syncImport.sleepScore}
+                    </span>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="rounded-[28px] border border-[#e5dccc] bg-white p-5 shadow-sm">
         <div className="flex items-center gap-2 text-sm font-semibold text-[#315f56]">
           <Moon size={17} aria-hidden="true" />
@@ -222,7 +301,7 @@ export function CheckInForm() {
               type="number"
               min={0}
               max={14}
-              step="0.5"
+              step="0.1"
               value={form.sleepHours}
               onChange={(event) => setField("sleepHours", Number(event.target.value))}
             />
