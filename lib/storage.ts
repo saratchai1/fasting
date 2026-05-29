@@ -1,5 +1,6 @@
 "use client";
 
+import { supabase } from "./supabase";
 import type {
   DailyCheckIn,
   FastingSession,
@@ -39,13 +40,40 @@ function writeJson<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
+// --- Profile ---
+
 export function getUserProfile() {
   return readJson<UserProfile | null>(STORAGE_KEYS.profile, null);
 }
 
+export async function syncProfileToSupabase(profile: UserProfile) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  const dbProfile = {
+    id: session.user.id,
+    name: profile.name,
+    sex: profile.sex,
+    age: profile.age,
+    height_cm: profile.heightCm,
+    weight_kg: profile.weightKg,
+    waist_cm: profile.waistCm,
+    goal: profile.goal,
+    fasting_experience: profile.fastingExperience,
+    menstrual_cycle_enabled: profile.menstrualCycleEnabled,
+    health_warnings: profile.healthWarnings,
+    updated_at: new Date().toISOString(),
+  };
+
+  await supabase.from("profiles").upsert(dbProfile);
+}
+
 export function saveUserProfile(profile: UserProfile) {
   writeJson(STORAGE_KEYS.profile, profile);
+  syncProfileToSupabase(profile).catch(console.error);
 }
+
+// --- Check-ins ---
 
 export function getDailyCheckIns() {
   return readJson<DailyCheckIn[]>(STORAGE_KEYS.checkIns, []);
@@ -56,12 +84,41 @@ export function getLatestCheckIn() {
   return checkIns[0] ?? null;
 }
 
+export async function syncCheckInToSupabase(checkIn: DailyCheckIn) {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  const dbCheckIn = {
+    user_id: session.user.id,
+    date_iso: checkIn.dateISO,
+    sleep_hours: checkIn.sleepHours,
+    sleep_quality: checkIn.sleepQuality,
+    energy: checkIn.energy,
+    stress: checkIn.stress,
+    hunger: checkIn.hunger,
+    mood: checkIn.mood,
+    last_meal_time: checkIn.lastMealTime,
+    coffee_cups: checkIn.coffeeCups,
+    coffee_with_sugar_or_milk: checkIn.coffeeWithSugarOrMilk,
+    exercise_yesterday: checkIn.exerciseYesterday,
+    current_weight_kg: checkIn.currentWeightKg,
+    current_waist_cm: checkIn.currentWaistCm,
+    menstrual_phase: checkIn.menstrualPhase,
+    symptoms: checkIn.symptoms,
+  };
+
+  await supabase.from("daily_check_ins").upsert(dbCheckIn);
+}
+
 export function saveDailyCheckIn(checkIn: DailyCheckIn) {
   const existing = getDailyCheckIns().filter(
     (entry) => entry.dateISO !== checkIn.dateISO,
   );
   writeJson(STORAGE_KEYS.checkIns, [checkIn, ...existing]);
+  syncCheckInToSupabase(checkIn).catch(console.error);
 }
+
+// --- Sessions ---
 
 export function getFastingSessions() {
   return readJson<FastingSession[]>(STORAGE_KEYS.sessions, []);
@@ -82,6 +139,8 @@ export function saveFastingSession(session: FastingSession) {
   writeJson(STORAGE_KEYS.sessions, [session, ...existing]);
 }
 
+// --- History ---
+
 export function getHistoryEntries() {
   return readJson<HistoryEntry[]>(STORAGE_KEYS.history, []);
 }
@@ -93,10 +152,75 @@ export function saveHistoryEntry(entry: HistoryEntry) {
   writeJson(STORAGE_KEYS.history, [entry, ...existing]);
 }
 
+// --- Global ---
+
 export function clearAdaptiveFastingData() {
   if (!canUseStorage()) {
     return;
   }
 
   Object.values(STORAGE_KEYS).forEach((key) => window.localStorage.removeItem(key));
+}
+
+// --- Pull Logic ---
+
+export async function pullDataFromSupabase() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  // 1. Pull Profile
+  const { data: dbProfile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+
+  if (dbProfile) {
+    const profile: UserProfile = {
+      id: dbProfile.id,
+      name: dbProfile.name,
+      sex: dbProfile.sex,
+      age: dbProfile.age,
+      heightCm: dbProfile.height_cm,
+      weightKg: dbProfile.weight_kg,
+      waistCm: dbProfile.waist_cm,
+      goal: dbProfile.goal,
+      fastingExperience: dbProfile.fasting_experience,
+      healthWarnings: dbProfile.health_warnings,
+      menstrualCycleEnabled: dbProfile.menstrual_cycle_enabled,
+      createdAt: dbProfile.updated_at,
+      updatedAt: dbProfile.updated_at,
+    };
+    writeJson(STORAGE_KEYS.profile, profile);
+  }
+
+  // 2. Pull Check-ins
+  const { data: dbCheckIns } = await supabase
+    .from("daily_check_ins")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .order("date_iso", { ascending: false });
+
+  if (dbCheckIns) {
+    const checkIns: DailyCheckIn[] = dbCheckIns.map((db) => ({
+      id: db.id,
+      dateISO: db.date_iso,
+      sleepHours: db.sleep_hours,
+      sleepQuality: db.sleep_quality,
+      energy: db.energy,
+      stress: db.stress,
+      hunger: db.hunger,
+      mood: db.mood,
+      last_meal_time: db.last_meal_time,
+      coffeeCups: db.coffee_cups,
+      coffeeWithSugarOrMilk: db.coffee_with_sugar_or_milk,
+      exerciseYesterday: db.exercise_yesterday,
+      currentWeightKg: db.current_weight_kg,
+      currentWaistCm: db.current_waist_cm,
+      menstrualPhase: db.menstrual_phase,
+      symptoms: db.symptoms,
+      createdAt: db.created_at,
+    }));
+    writeJson(STORAGE_KEYS.checkIns, checkIns);
+  }
 }

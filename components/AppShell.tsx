@@ -22,6 +22,7 @@ const navItems = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-[#f2f7ef] text-[#24211d]">
@@ -31,7 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2f6b54] text-white">
               <Sparkles size={18} aria-hidden="true" />
             </span>
-            <span className="leading-tight">
+            <span className="hidden leading-tight sm:block">
               <span className="block text-sm font-semibold">Adaptive</span>
               <span className="block text-xs text-[#756b5d]">Fasting Coach</span>
             </span>
@@ -60,14 +61,34 @@ export function AppShell({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <Link
-            href="/disclaimer"
-            className="flex h-10 items-center justify-center rounded-full border border-[#d9eadf] bg-white px-3 text-[#526258] shadow-sm transition hover:border-[#2f6b54]"
-            title="ข้อควรระวัง"
-            aria-label="ข้อควรระวัง"
-          >
-            <ShieldAlert size={18} aria-hidden="true" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/disclaimer"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9eadf] bg-white text-[#526258] shadow-sm transition hover:border-[#2f6b54]"
+              title="ข้อควรระวัง"
+              aria-label="ข้อควรระวัง"
+            >
+              <ShieldAlert size={18} aria-hidden="true" />
+            </Link>
+
+            {user ? (
+              <button
+                onClick={() => signOut()}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[#d9eadf] bg-white text-[#526258] shadow-sm transition hover:border-red-400 hover:text-red-500"
+                title="ออกจากระบบ"
+              >
+                <LogOut size={18} />
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="flex h-10 items-center gap-2 rounded-full bg-[#2f6b54] px-4 text-sm font-semibold text-white transition hover:bg-[#245341]"
+              >
+                <User size={16} />
+                <span className="hidden sm:inline">เข้าสู่ระบบ</span>
+              </Link>
+            )}
+          </div>
         </div>
       </header>
 
