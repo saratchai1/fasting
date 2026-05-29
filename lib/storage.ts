@@ -211,7 +211,7 @@ export async function pullDataFromSupabase() {
       stress: db.stress,
       hunger: db.hunger,
       mood: db.mood,
-      last_meal_time: db.last_meal_time,
+      lastMealTime: db.last_meal_time,
       coffeeCups: db.coffee_cups,
       coffeeWithSugarOrMilk: db.coffee_with_sugar_or_milk,
       exerciseYesterday: db.exercise_yesterday,

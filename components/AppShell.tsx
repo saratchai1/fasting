@@ -5,12 +5,15 @@ import {
   BarChart3,
   Clock3,
   Home,
+  LogOut,
   ShieldAlert,
   Sparkles,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/", label: "หน้าแรก", icon: Home },
