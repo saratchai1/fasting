@@ -141,7 +141,7 @@ export default function HistoryPage() {
                 </h2>
               </div>
               <span className="inline-flex h-10 items-center rounded-full bg-[#eef7ef] px-3 text-sm font-semibold text-[#315f56]">
-                {entry.recommendation.readinessScore}/100
+                {entry.recommendation.readinessScore.toFixed(1)}/100
               </span>
             </div>
             <p className="mt-3 text-sm leading-6 text-[#756b5d]">

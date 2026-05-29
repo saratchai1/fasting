@@ -366,9 +366,10 @@ export function CheckInForm() {
               type="number"
               min={20}
               step="0.1"
-              value={form.currentWeightKg}
+              placeholder="0.0"
+              value={form.currentWeightKg || ""}
               onChange={(event) =>
-                setField("currentWeightKg", Number(event.target.value))
+                setField("currentWeightKg", event.target.value === "" ? 0 : Number(event.target.value))
               }
             />
           </label>
@@ -379,9 +380,10 @@ export function CheckInForm() {
               type="number"
               min={30}
               step="0.1"
-              value={form.currentWaistCm}
+              placeholder="0.0"
+              value={form.currentWaistCm || ""}
               onChange={(event) =>
-                setField("currentWaistCm", Number(event.target.value))
+                setField("currentWaistCm", event.target.value === "" ? 0 : Number(event.target.value))
               }
             />
           </label>

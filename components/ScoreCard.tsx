@@ -12,7 +12,7 @@ export function ScoreCard({ score }: { score: number }) {
             คะแนนความพร้อมของร่างกาย
           </div>
           <p className="mt-2 text-4xl font-semibold tracking-normal text-[#24211d]">
-            {safeScore}
+            {safeScore.toFixed(1)}
           </p>
           <p className="mt-1 text-sm text-[#756b5d]">จาก 100 คะแนน</p>
         </div>

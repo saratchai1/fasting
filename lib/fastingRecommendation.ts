@@ -12,7 +12,7 @@ const MEDICAL_DISCLAIMER =
   "แอปนี้ให้คำแนะนำด้านสุขภาพทั่วไปเท่านั้น ไม่ใช่คำแนะนำทางการแพทย์ หากรู้สึกเวียนหัว อ่อนแรง หน้ามืด เป็นลม หรือไม่สบาย ให้หยุด Fast ทันที และควรปรึกษาบุคลากรทางการแพทย์หากตั้งครรภ์ ให้นมบุตร เป็นเบาหวาน อายุต่ำกว่า 18 ปี ใช้ยา หรือมีโรคประจำตัว";
 
 function clampScore(score: number) {
-  return Math.max(0, Math.min(100, Math.round(score)));
+  return Math.max(0, Math.min(100, Math.round(score * 10) / 10));
 }
 
 function capRecommendedHours(hours: RecommendedHours, cap: RecommendedHours) {
@@ -146,7 +146,7 @@ export function calculateFastingRecommendation(
   profile: UserProfile,
   dailyCheckIn: DailyCheckIn,
 ): RecommendationResult {
-  let score = 70;
+  let score = 71.5;
   let cap = maxHoursForExperience(profile.fastingExperience);
   const reasons: string[] = [];
   const warnings: string[] = [];
@@ -222,7 +222,7 @@ export function calculateFastingRecommendation(
   }
 
   if (dailyCheckIn.coffeeCups >= 4) {
-    score -= 5;
+    score -= 4.5;
     reasons.push("กาแฟ 4 แก้วขึ้นไปอาจเพิ่มใจสั่นหรือหิวเร็วในบางคน");
   }
 
@@ -234,13 +234,13 @@ export function calculateFastingRecommendation(
     dailyCheckIn.menstrualPhase === "period_day_1_2" &&
     dailyCheckIn.symptoms.cramps
   ) {
-    score -= 15;
+    score -= 14.5;
     cap = Math.min(cap, 12) as RecommendedHours;
     reasons.push("ช่วงประจำเดือนวันแรก ๆ และมีปวดท้อง ควรเลือกพักหรือ Fast สั้น");
   }
 
   if (dailyCheckIn.menstrualPhase === "luteal_pms") {
-    score -= 10;
+    score -= 9.5;
     cap = Math.min(cap, score >= 70 ? 16 : 14) as RecommendedHours;
     reasons.push("ช่วง Luteal/PMS มักไวต่อความเครียดและความหิวมากขึ้น");
   }
@@ -250,7 +250,7 @@ export function calculateFastingRecommendation(
     dailyCheckIn.sleepHours >= 7 &&
     dailyCheckIn.energy >= 4
   ) {
-    score += 5;
+    score += 4.5;
     reasons.push("ช่วง Follicular พร้อมกับการนอนและพลังงานดี รองรับแผนมาตรฐานได้ดี");
   }
 
