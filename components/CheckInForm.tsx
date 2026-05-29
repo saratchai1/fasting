@@ -363,28 +363,31 @@ export function CheckInForm() {
             น้ำหนักปัจจุบัน (กก.)
             <input
               className={fieldClass}
-              type="number"
-              min={20}
-              step="0.1"
+              type="text"
+              inputMode="decimal"
               placeholder="0.0"
-              value={form.currentWeightKg === 0 ? "" : form.currentWeightKg}
-              onChange={(event) =>
-                setField("currentWeightKg", event.target.value === "" ? 0 : Number(event.target.value))
-              }
+              value={form.currentWeightKg === 0 ? "" : form.currentWeightKg.toString()}
+              onChange={(event) => {
+                const val = event.target.value.replace(/[^0-9.]/g, "");
+                // ลบเลข 0 นำหน้าออก (ยกเว้น 0.xxx หรือเลข 0 ตัวเดียว)
+                const sanitized = val.replace(/^0+(?!(\.|$))/, "");
+                setField("currentWeightKg", sanitized === "" ? 0 : Number(sanitized));
+              }}
             />
           </label>
           <label className={labelClass}>
             รอบเอวปัจจุบัน (ซม.)
             <input
               className={fieldClass}
-              type="number"
-              min={30}
-              step="0.1"
+              type="text"
+              inputMode="decimal"
               placeholder="0.0"
-              value={form.currentWaistCm === 0 ? "" : form.currentWaistCm}
-              onChange={(event) =>
-                setField("currentWaistCm", event.target.value === "" ? 0 : Number(event.target.value))
-              }
+              value={form.currentWaistCm === 0 ? "" : form.currentWaistCm.toString()}
+              onChange={(event) => {
+                const val = event.target.value.replace(/[^0-9.]/g, "");
+                const sanitized = val.replace(/^0+(?!(\.|$))/, "");
+                setField("currentWaistCm", sanitized === "" ? 0 : Number(sanitized));
+              }}
             />
           </label>
           <label className="flex min-h-12 items-center gap-3 rounded-2xl border border-[#ded4c4] bg-[#f7f4ee] px-4 text-sm font-semibold text-[#50483f] md:mt-7">

@@ -209,22 +209,30 @@ export function OnboardingForm() {
             น้ำหนัก (กก.)
             <input
               className={fieldClass}
-              type="number"
-              min={20}
-              step="0.1"
-              value={form.weightKg}
-              onChange={(event) => setField("weightKg", Number(event.target.value))}
+              type="text"
+              inputMode="decimal"
+              placeholder="0.0"
+              value={form.weightKg === 0 ? "" : form.weightKg.toString()}
+              onChange={(event) => {
+                const val = event.target.value.replace(/[^0-9.]/g, "");
+                const sanitized = val.replace(/^0+(?!(\.|$))/, "");
+                setField("weightKg", sanitized === "" ? 0 : Number(sanitized));
+              }}
             />
           </label>
           <label className={labelClass}>
             รอบเอว (ซม.)
             <input
               className={fieldClass}
-              type="number"
-              min={30}
-              step="0.1"
-              value={form.waistCm}
-              onChange={(event) => setField("waistCm", Number(event.target.value))}
+              type="text"
+              inputMode="decimal"
+              placeholder="0.0"
+              value={form.waistCm === 0 ? "" : form.waistCm.toString()}
+              onChange={(event) => {
+                const val = event.target.value.replace(/[^0-9.]/g, "");
+                const sanitized = val.replace(/^0+(?!(\.|$))/, "");
+                setField("waistCm", sanitized === "" ? 0 : Number(sanitized));
+              }}
             />
           </label>
         </div>
