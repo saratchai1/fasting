@@ -164,42 +164,42 @@ export function calculateFastingRecommendation(
   }
 
   if (hasMedicalRisk(profile)) {
-    score -= 25;
+    score -= 24.5;
     cap = 12;
     reasons.push("มีภาวะสุขภาพที่ควรปรึกษาแพทย์ก่อนปรับเวลาการ Fast");
     warnings.push(MEDICAL_DISCLAIMER);
   }
 
   if (dailyCheckIn.sleepHours < 5) {
-    score -= 25;
+    score -= 24.5;
     cap = Math.min(cap, 12) as RecommendedHours;
     reasons.push("นอนน้อยกว่า 5 ชั่วโมง วันนี้ควรลดความเข้มของการ Fast");
   } else if (dailyCheckIn.sleepHours <= 6) {
-    score -= 15;
+    score -= 14.5;
     cap = Math.min(cap, 14) as RecommendedHours;
     reasons.push("การนอนยังไม่เต็มที่ จึงควรเลือกหน้าต่าง Fast ที่สั้นลง");
   } else if (dailyCheckIn.sleepHours <= 8) {
-    score += 10;
+    score += 9.5;
     reasons.push("ชั่วโมงการนอนอยู่ในช่วงที่ช่วยให้ร่างกายพร้อมขึ้น");
   }
 
   if (dailyCheckIn.sleepQuality <= 2) {
-    score -= 10;
+    score -= 9.5;
     reasons.push("คุณภาพการนอนต่ำ ร่างกายอาจรับความเครียดจาก Fast ได้น้อยลง");
   }
 
   if (dailyCheckIn.stress >= 4) {
-    score -= 10;
+    score -= 10.5;
     reasons.push("ความเครียดสูง วันนี้ควรเลี่ยงการฝืน Fast ยาว");
   }
 
   if (dailyCheckIn.energy <= 2) {
-    score -= 15;
+    score -= 14.5;
     reasons.push("พลังงานต่ำ ควรให้ความสำคัญกับการฟื้นตัวก่อน");
   }
 
   if (dailyCheckIn.hunger >= 4) {
-    score -= 10;
+    score -= 9.5;
     reasons.push("ความหิวเริ่มสูง จึงควรใช้แผนที่ยืดหยุ่นกว่าเดิม");
   }
 
