@@ -219,6 +219,7 @@ export async function pullDataFromSupabase() {
   }
 
   if (dbCheckIns) {
+    const profile = getUserProfile();
     const checkIns: DailyCheckIn[] = dbCheckIns.map((db) => ({
       id: db.id,
       dateISO: db.date_iso,
@@ -232,8 +233,8 @@ export async function pullDataFromSupabase() {
       coffeeCups: db.coffee_cups,
       coffeeWithSugarOrMilk: db.coffee_with_sugar_or_milk,
       exerciseYesterday: db.exercise_yesterday,
-      currentWeightKg: db.current_weight_kg ?? 0,
-      currentWaistCm: db.current_waist_cm ?? 0,
+      currentWeightKg: db.current_weight_kg || profile?.weightKg || 0,
+      currentWaistCm: db.current_waist_cm || profile?.waistCm || 0,
       menstrualPhase: db.menstrual_phase,
       symptoms: db.symptoms || {},
       createdAt: db.created_at,

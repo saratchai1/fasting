@@ -1,14 +1,14 @@
 "use client";
 
 /* eslint-disable react-hooks/set-state-in-effect */
-
 import { BarChart3, CalendarDays, Gauge, Ruler, Weight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { InsightCard } from "@/components/InsightCard";
-import { getHistoryEntries } from "@/lib/storage";
+import { calculateFastingRecommendation } from "@/lib/fastingRecommendation";
+import { getDailyCheckIns, getUserProfile } from "@/lib/storage";
 import { formatThaiDate } from "@/lib/time";
-import type { HistoryEntry } from "@/types/fasting";
+import type { DailyCheckIn, HistoryEntry, UserProfile } from "@/types/fasting";
 
 function formatDelta(value: number, unit: string) {
   if (!Number.isFinite(value) || value === 0) {
@@ -19,13 +19,32 @@ function formatDelta(value: number, unit: string) {
 }
 
 export default function HistoryPage() {
-  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [checkIns, setCheckIns] = useState<DailyCheckIn[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    setEntries(getHistoryEntries());
+    setProfile(getUserProfile());
+    setCheckIns(getDailyCheckIns());
     setLoaded(true);
   }, []);
+
+  const entries = useMemo(() => {
+    if (!profile || checkIns.length === 0) return [];
+
+    return checkIns.map((checkIn) => {
+      const recommendation = calculateFastingRecommendation(profile, checkIn);
+      const entry: HistoryEntry = {
+        id: `h_${checkIn.id}`,
+        dateISO: checkIn.dateISO,
+        profileId: profile.id,
+        checkIn,
+        recommendation,
+        savedAt: checkIn.createdAt,
+      };
+      return entry;
+    });
+  }, [profile, checkIns]);
 
   const insights = useMemo(() => {
     const weeklyEntries = entries.slice(0, 7);

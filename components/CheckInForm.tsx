@@ -211,8 +211,13 @@ export function CheckInForm() {
     }
 
     const now = new Date().toISOString();
+    const finalWeight = form.currentWeightKg || profile.weightKg || 0;
+    const finalWaist = form.currentWaistCm || profile.waistCm || 0;
+
     const checkIn: DailyCheckIn = {
       ...form,
+      currentWeightKg: finalWeight,
+      currentWaistCm: finalWaist,
       id: makeId("checkin"),
       dateISO: todayISO(),
       menstrualPhase: profile.menstrualCycleEnabled ? form.menstrualPhase : "none",
