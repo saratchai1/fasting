@@ -65,12 +65,15 @@ export async function syncProfileToSupabase(profile: UserProfile) {
     updated_at: new Date().toISOString(),
   };
 
-  await supabase.from("profiles").upsert(dbProfile);
+  const { error } = await supabase.from("profiles").upsert(dbProfile);
+  if (error) {
+    console.error("Error syncing profile to Supabase:", error.message);
+  }
 }
 
 export function saveUserProfile(profile: UserProfile) {
   writeJson(STORAGE_KEYS.profile, profile);
-  syncProfileToSupabase(profile).catch(console.error);
+  syncProfileToSupabase(profile);
 }
 
 // --- Check-ins ---
@@ -107,7 +110,10 @@ export async function syncCheckInToSupabase(checkIn: DailyCheckIn) {
     symptoms: checkIn.symptoms,
   };
 
-  await supabase.from("daily_check_ins").upsert(dbCheckIn);
+  const { error } = await supabase.from("daily_check_ins").upsert(dbCheckIn);
+  if (error) {
+    console.error("Error syncing check-in to Supabase:", error.message);
+  }
 }
 
 export function saveDailyCheckIn(checkIn: DailyCheckIn) {
@@ -115,7 +121,7 @@ export function saveDailyCheckIn(checkIn: DailyCheckIn) {
     (entry) => entry.dateISO !== checkIn.dateISO,
   );
   writeJson(STORAGE_KEYS.checkIns, [checkIn, ...existing]);
-  syncCheckInToSupabase(checkIn).catch(console.error);
+  syncCheckInToSupabase(checkIn);
 }
 
 // --- Sessions ---
@@ -169,24 +175,29 @@ export async function pullDataFromSupabase() {
   if (!session) return;
 
   // 1. Pull Profile
-  const { data: dbProfile } = await supabase
+  const { data: dbProfile, error: profileError } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", session.user.id)
     .single();
 
+  if (profileError && profileError.code !== "PGRST116") { // PGRST116 is 'no rows returned'
+    console.error("Error pulling profile from Supabase:", profileError.message);
+  }
+
   if (dbProfile) {
+    const existing = getUserProfile();
     const profile: UserProfile = {
       id: dbProfile.id,
       name: dbProfile.name,
       sex: dbProfile.sex,
       age: dbProfile.age,
       heightCm: dbProfile.height_cm,
-      weightKg: dbProfile.weight_kg,
-      waistCm: dbProfile.waist_cm,
+      weightKg: dbProfile.weight_kg ?? existing?.weightKg ?? 0,
+      waistCm: dbProfile.waist_cm ?? existing?.waistCm ?? 0,
       goal: dbProfile.goal,
       fastingExperience: dbProfile.fasting_experience,
-      healthWarnings: dbProfile.health_warnings,
+      healthWarnings: dbProfile.health_warnings || existing?.healthWarnings || {},
       menstrualCycleEnabled: dbProfile.menstrual_cycle_enabled,
       createdAt: dbProfile.updated_at,
       updatedAt: dbProfile.updated_at,
@@ -195,11 +206,15 @@ export async function pullDataFromSupabase() {
   }
 
   // 2. Pull Check-ins
-  const { data: dbCheckIns } = await supabase
+  const { data: dbCheckIns, error: checkInsError } = await supabase
     .from("daily_check_ins")
     .select("*")
     .eq("user_id", session.user.id)
     .order("date_iso", { ascending: false });
+
+  if (checkInsError) {
+    console.error("Error pulling check-ins from Supabase:", checkInsError.message);
+  }
 
   if (dbCheckIns) {
     const checkIns: DailyCheckIn[] = dbCheckIns.map((db) => ({
@@ -215,10 +230,10 @@ export async function pullDataFromSupabase() {
       coffeeCups: db.coffee_cups,
       coffeeWithSugarOrMilk: db.coffee_with_sugar_or_milk,
       exerciseYesterday: db.exercise_yesterday,
-      currentWeightKg: db.current_weight_kg,
-      currentWaistCm: db.current_waist_cm,
+      currentWeightKg: db.current_weight_kg ?? 0,
+      currentWaistCm: db.current_waist_cm ?? 0,
       menstrualPhase: db.menstrual_phase,
-      symptoms: db.symptoms,
+      symptoms: db.symptoms || {},
       createdAt: db.created_at,
     }));
     writeJson(STORAGE_KEYS.checkIns, checkIns);
