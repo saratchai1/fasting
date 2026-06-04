@@ -91,6 +91,8 @@ export async function syncCheckInToSupabase(checkIn: DailyCheckIn) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return;
 
+  const profile = getUserProfile();
+
   const dbCheckIn = {
     user_id: session.user.id,
     date_iso: checkIn.dateISO,
@@ -104,8 +106,8 @@ export async function syncCheckInToSupabase(checkIn: DailyCheckIn) {
     coffee_cups: checkIn.coffeeCups,
     coffee_with_sugar_or_milk: checkIn.coffeeWithSugarOrMilk,
     exercise_yesterday: checkIn.exerciseYesterday,
-    current_weight_kg: checkIn.currentWeightKg,
-    current_waist_cm: checkIn.currentWaistCm,
+    current_weight_kg: checkIn.currentWeightKg || profile?.weightKg || 0,
+    current_waist_cm: checkIn.currentWaistCm || profile?.waistCm || 0,
     menstrual_phase: checkIn.menstrualPhase,
     symptoms: checkIn.symptoms,
   };
