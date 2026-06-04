@@ -57,6 +57,8 @@ export default function HistoryPage() {
       fastDays,
       weightDelta,
       waistDelta,
+      latestWeight: latest?.checkIn.currentWeightKg ?? 0,
+      latestWaist: latest?.checkIn.currentWaistCm ?? 0,
     };
   }, [entries]);
 
@@ -110,15 +112,15 @@ export default function HistoryPage() {
           icon={<CalendarDays size={20} aria-hidden="true" />}
         />
         <InsightCard
-          label="น้ำหนัก"
-          value={formatDelta(insights.weightDelta, "กก.")}
-          detail="เทียบรายการล่าสุดกับรายการเก่าสุดในช่วงที่แสดง"
+          label="น้ำหนักปัจจุบัน"
+          value={`${insights.latestWeight} กก.`}
+          detail={`เปลี่ยนแปลง ${formatDelta(insights.weightDelta, "กก.")} จากรายการแรก`}
           icon={<Weight size={20} aria-hidden="true" />}
         />
         <InsightCard
-          label="รอบเอว"
-          value={formatDelta(insights.waistDelta, "ซม.")}
-          detail="ใช้ดูแนวโน้มแบบเบา ๆ ไม่ใช่การวินิจฉัยสุขภาพ"
+          label="รอบเอวปัจจุบัน"
+          value={`${insights.latestWaist} ซม.`}
+          detail={`เปลี่ยนแปลง ${formatDelta(insights.waistDelta, "ซม.")} จากรายการแรก`}
           icon={<Ruler size={20} aria-hidden="true" />}
         />
       </div>
