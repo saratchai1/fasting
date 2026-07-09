@@ -34,6 +34,8 @@ export default function LoginPage() {
     if (error) {
       if (error.message === "Invalid login credentials") {
         setMessage("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      } else if (error.message.includes("Failed to fetch") || error.message.includes("fetch failed")) {
+        setMessage("เกิดข้อผิดพลาด: ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ฐานข้อมูลได้ (Failed to fetch) กรุณาตรวจสอบอินเทอร์เน็ต หรือโปรเจกต์ Supabase อาจจะถูกหยุดทำงานชั่วคราว (Paused)");
       } else {
         setMessage("เกิดข้อผิดพลาด: " + error.message);
       }

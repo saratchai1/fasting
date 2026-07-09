@@ -40,6 +40,8 @@ export default function SignUpPage() {
     if (error) {
       if (error.message === "User already registered") {
         setMessage("อีเมลนี้ถูกใช้งานไปแล้ว");
+      } else if (error.message.includes("Failed to fetch") || error.message.includes("fetch failed")) {
+        setMessage("เกิดข้อผิดพลาด: ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ฐานข้อมูลได้ (Failed to fetch) กรุณาตรวจสอบอินเทอร์เน็ต หรือโปรเจกต์ Supabase อาจจะถูกหยุดทำงานชั่วคราว (Paused)");
       } else {
         setMessage("เกิดข้อผิดพลาด: " + error.message);
       }
