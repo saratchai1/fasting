@@ -110,10 +110,102 @@ function AnimatedCounter({
 }
 
 /* ================================================================== */
+/*  DNA HELIX — Animated Cover Symbol                                  */
+/* ================================================================== */
+function DNAHelix({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 120 200"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Left strand */}
+      <path
+        d="M30 10 C30 40, 90 50, 90 80 C90 110, 30 120, 30 150 C30 180, 90 185, 90 195"
+        stroke="url(#dna-grad-left)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        fill="none"
+        className="dna-strand-left"
+      />
+      {/* Right strand */}
+      <path
+        d="M90 10 C90 40, 30 50, 30 80 C30 110, 90 120, 90 150 C90 180, 30 185, 30 195"
+        stroke="url(#dna-grad-right)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        fill="none"
+        className="dna-strand-right"
+      />
+      {/* Rungs (base pairs) */}
+      {[25, 45, 65, 80, 100, 120, 140, 160, 175].map((y, i) => {
+        // Calculate x positions based on sine-wave-like positions
+        const t = y / 200;
+        const phase = t * Math.PI * 2;
+        const x1 = 60 + 30 * Math.sin(phase);
+        const x2 = 60 - 30 * Math.sin(phase);
+        return (
+          <line
+            key={y}
+            x1={x1}
+            y1={y}
+            x2={x2}
+            y2={y}
+            stroke={`rgba(163, 230, 53, ${0.15 + (i % 3) * 0.1})`}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            className="dna-rung"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        );
+      })}
+      {/* Glowing dots at intersections */}
+      {[45, 80, 120, 160].map((y, i) => (
+        <circle
+          key={y}
+          cx="60"
+          cy={y}
+          r="3"
+          fill="#a3e635"
+          opacity="0.6"
+          className="dna-dot"
+          style={{ animationDelay: `${i * 0.3 + 0.5}s` }}
+        />
+      ))}
+      <defs>
+        <linearGradient id="dna-grad-left" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#a3e635" stopOpacity="0.9" />
+          <stop offset="50%" stopColor="#4ade80" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#2dd4bf" stopOpacity="0.9" />
+        </linearGradient>
+        <linearGradient id="dna-grad-right" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.9" />
+          <stop offset="50%" stopColor="#4ade80" stopOpacity="0.7" />
+          <stop offset="100%" stopColor="#a3e635" stopOpacity="0.9" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+/* ================================================================== */
 /*  LANDING PAGE                                                      */
 /* ================================================================== */
 export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
+  const [showCover, setShowCover] = useState(true);
+  const [coverFading, setCoverFading] = useState(false);
+
+  function dismissCover() {
+    if (!showCover || coverFading) return;
+    setCoverFading(true);
+    setTimeout(() => {
+      setShowCover(false);
+      setCoverFading(false);
+    }, 800);
+  }
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -123,6 +215,134 @@ export default function LandingPage() {
 
   return (
     <>
+      {/* ========================================================== */}
+      {/*  COVER / SPLASH PAGE                                        */}
+      {/* ========================================================== */}
+      {showCover ? (
+        <section
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden bg-[#070f0d]"
+          style={{
+            opacity: coverFading ? 0 : 1,
+            transition: "opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          {/* Background glow orbs */}
+          <div
+            aria-hidden="true"
+            className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(47,107,84,0.25) 0%, rgba(163,230,53,0.08) 40%, transparent 70%)",
+              animation: "coverPulse 5s ease-in-out infinite",
+            }}
+          />
+          <div
+            aria-hidden="true"
+            className="absolute right-1/4 top-1/4 h-[300px] w-[300px] rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(163,230,53,0.12) 0%, transparent 70%)",
+              animation: "coverPulse 7s ease-in-out infinite 1.5s",
+            }}
+          />
+
+          {/* Floating particles */}
+          <div aria-hidden="true" className="absolute inset-0 overflow-hidden">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute rounded-full bg-[#a3e635]"
+                style={{
+                  width: `${2 + (i % 3)}px`,
+                  height: `${2 + (i % 3)}px`,
+                  left: `${5 + (i * 4.7) % 90}%`,
+                  top: `${10 + (i * 7.3) % 80}%`,
+                  opacity: 0.1 + (i % 5) * 0.05,
+                  animation: `particleFloat ${4 + (i % 3) * 2}s ease-in-out infinite ${i * 0.3}s`,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* DNA Helix Symbol */}
+          <div
+            className="relative mb-8"
+            style={{
+              animation: "coverSlideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) both",
+            }}
+          >
+            <div
+              className="absolute inset-0 blur-2xl"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(163,230,53,0.2) 0%, transparent 70%)",
+              }}
+            />
+            <DNAHelix className="relative h-40 w-auto sm:h-52" />
+          </div>
+
+          {/* App name */}
+          <div
+            className="relative text-center"
+            style={{
+              animation:
+                "coverSlideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both",
+            }}
+          >
+            <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
+              <span className="bg-gradient-to-r from-[#a3e635] via-[#4ade80] to-[#2dd4bf] bg-clip-text text-transparent">
+                Adaptive
+              </span>
+            </h1>
+            <p className="mt-1 text-lg font-medium tracking-[0.2em] text-white/50 sm:text-xl">
+              FASTING COACH
+            </p>
+          </div>
+
+          {/* Tagline */}
+          <p
+            className="relative mx-auto mt-6 max-w-sm px-4 text-center text-sm leading-relaxed text-white/40 sm:text-base"
+            style={{
+              animation:
+                "coverSlideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both",
+            }}
+          >
+            ปรับตัว เรียนรู้ เข้าใจร่างกาย
+            <br />
+            เพื่อสุขภาพที่ยั่งยืนจากภายใน
+          </p>
+
+          {/* Enter button */}
+          <button
+            onClick={dismissCover}
+            className="group relative mt-10 flex h-14 items-center gap-3 rounded-2xl border border-[#a3e635]/30 bg-[#a3e635]/10 px-8 text-base font-semibold text-[#a3e635] shadow-[0_0_40px_rgba(163,230,53,0.15)] backdrop-blur-sm transition-all hover:border-[#a3e635]/50 hover:bg-[#a3e635]/20 hover:shadow-[0_0_60px_rgba(163,230,53,0.25)] hover:translate-y-[-2px]"
+            style={{
+              animation:
+                "coverSlideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both",
+            }}
+          >
+            เข้าสู่ Manifesto
+            <ArrowRight
+              size={20}
+              className="transition-transform group-hover:translate-x-1"
+            />
+          </button>
+
+          {/* "FITKUB" branding bottom */}
+          <div
+            className="absolute bottom-8 text-center"
+            style={{
+              animation:
+                "coverFadeIn 1.5s ease-out 1s both",
+            }}
+          >
+            <p className="text-xs tracking-[0.3em] text-white/20">
+              BY FITKUB
+            </p>
+          </div>
+        </section>
+      ) : null}
+
       {/* ========================================================== */}
       {/*  HERO                                                       */}
       {/* ========================================================== */}
@@ -1212,6 +1432,100 @@ export default function LandingPage() {
           100% {
             transform: translateY(0);
             opacity: 1;
+          }
+        }
+
+        /* ── Cover page animations ── */
+        @keyframes coverPulse {
+          0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.15;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1.15);
+            opacity: 0.25;
+          }
+        }
+        @keyframes coverSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(40px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes coverFadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes particleFloat {
+          0%, 100% {
+            transform: translateY(0) translateX(0);
+            opacity: 0.1;
+          }
+          25% {
+            transform: translateY(-15px) translateX(5px);
+            opacity: 0.25;
+          }
+          50% {
+            transform: translateY(-8px) translateX(-3px);
+            opacity: 0.15;
+          }
+          75% {
+            transform: translateY(-20px) translateX(8px);
+            opacity: 0.2;
+          }
+        }
+
+        /* ── DNA Helix animations ── */
+        .dna-strand-left {
+          stroke-dasharray: 600;
+          stroke-dashoffset: 600;
+          animation: dnaStrandDraw 2s ease-out 0.3s forwards;
+        }
+        .dna-strand-right {
+          stroke-dasharray: 600;
+          stroke-dashoffset: 600;
+          animation: dnaStrandDraw 2s ease-out 0.5s forwards;
+        }
+        @keyframes dnaStrandDraw {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+        .dna-rung {
+          opacity: 0;
+          animation: dnaRungFade 0.6s ease-out forwards;
+          animation-delay: inherit;
+        }
+        @keyframes dnaRungFade {
+          from {
+            opacity: 0;
+            transform: scaleX(0);
+          }
+          to {
+            opacity: 1;
+            transform: scaleX(1);
+          }
+        }
+        .dna-dot {
+          opacity: 0;
+          animation: dnaDotPulse 2s ease-in-out infinite;
+        }
+        @keyframes dnaDotPulse {
+          0%, 100% {
+            opacity: 0.3;
+            r: 2;
+          }
+          50% {
+            opacity: 0.8;
+            r: 4;
           }
         }
       `}</style>

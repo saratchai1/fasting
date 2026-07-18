@@ -81,21 +81,69 @@ const defaultForm: CheckInFormState = {
   symptoms: defaultSymptoms,
 };
 
+/* ------------------------------------------------------------------ */
+/*  Slider label descriptors for each metric                           */
+/* ------------------------------------------------------------------ */
+const sliderDescriptors: Record<string, Record<number, string>> = {
+  sleepQuality: {
+    1: "แย่มาก",
+    2: "แย่",
+    3: "พอใช้",
+    4: "ดี",
+    5: "ดีมาก",
+  },
+  energy: {
+    1: "หมดแรง",
+    2: "ต่ำ",
+    3: "ปานกลาง",
+    4: "สูง",
+    5: "สูงมาก",
+  },
+  stress: {
+    1: "ผ่อนคลาย",
+    2: "น้อย",
+    3: "ปานกลาง",
+    4: "สูง",
+    5: "สูงมาก",
+  },
+  hunger: {
+    1: "ไม่หิว",
+    2: "หิวน้อย",
+    3: "เริ่มหิว",
+    4: "หิว",
+    5: "หิวมาก",
+  },
+  mood: {
+    1: "แย่มาก",
+    2: "แย่",
+    3: "ปกติ",
+    4: "ดี",
+    5: "ดีมาก",
+  },
+};
+
 function RangeField({
   label,
   value,
   onChange,
+  descriptorKey,
 }: {
   label: string;
   value: number;
   onChange: (value: number) => void;
+  descriptorKey: string;
 }) {
+  const descriptors = sliderDescriptors[descriptorKey] ?? {};
+  const currentLabel = descriptors[value] ?? String(value);
+
   return (
     <label className="block rounded-2xl border border-[#e5dccc] bg-white p-4">
       <div className="flex items-center justify-between gap-3">
         <span className={labelClass}>{label}</span>
-        <span className="grid h-8 min-w-8 place-items-center rounded-full bg-[#eef7ef] px-2 text-sm font-semibold text-[#315f56]">
-          {value}
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eef7ef] px-3 py-1 text-sm font-semibold text-[#315f56]">
+          <span>{value}</span>
+          <span className="text-[#315f56]/60">·</span>
+          <span className="text-xs font-medium text-[#315f56]/80">{currentLabel}</span>
         </span>
       </div>
       <input
@@ -106,6 +154,21 @@ function RangeField({
         onChange={(event) => onChange(Number(event.target.value))}
         className="mt-4 w-full accent-[#315f56]"
       />
+      <div className="mt-1.5 flex justify-between px-0.5">
+        {[1, 2, 3, 4, 5].map((step) => (
+          <span
+            key={step}
+            className={`text-[10px] leading-tight transition-colors ${
+              step === value
+                ? "font-semibold text-[#315f56]"
+                : "text-[#a09787]"
+            }`}
+            style={{ width: "20%", textAlign: step === 1 ? "left" : step === 5 ? "right" : "center" }}
+          >
+            {descriptors[step]}
+          </span>
+        ))}
+      </div>
     </label>
   );
 }
@@ -326,26 +389,31 @@ export function CheckInForm() {
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <RangeField
             label="คุณภาพการนอน"
+            descriptorKey="sleepQuality"
             value={form.sleepQuality}
             onChange={(value) => setField("sleepQuality", value)}
           />
           <RangeField
             label="พลังงาน"
+            descriptorKey="energy"
             value={form.energy}
             onChange={(value) => setField("energy", value)}
           />
           <RangeField
             label="ความเครียด"
+            descriptorKey="stress"
             value={form.stress}
             onChange={(value) => setField("stress", value)}
           />
           <RangeField
             label="ความหิว"
+            descriptorKey="hunger"
             value={form.hunger}
             onChange={(value) => setField("hunger", value)}
           />
           <RangeField
             label="อารมณ์"
+            descriptorKey="mood"
             value={form.mood}
             onChange={(value) => setField("mood", value)}
           />
